@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -7,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Csv_Enumerable
 {
-    class CsvEnumerable : IEnumerable, IEnumerator, IDisposable
+    class CsvEnumerable : IEnumerable, IEnumerator
     {
         class CsvRecord
         {
@@ -40,7 +39,6 @@ namespace Csv_Enumerable
             }
         }
 
-        StreamReader streamReader;
         private bool disposed = false;
         int position = -1;
         List<CsvRecord> records;
@@ -48,13 +46,15 @@ namespace Csv_Enumerable
         public CsvEnumerable(string fileName)
         {
             var fileStream = File.Open(fileName, FileMode.Open);
-            streamReader = new StreamReader(fileStream);
-            records = new List<CsvRecord>();
-            while (!streamReader.EndOfStream)
+            using (var streamReader = new StreamReader(fileStream))
             {
-                var strRecord = streamReader.ReadLine();
-                var csvRecord = new CsvRecord(strRecord);
-                records.Add(csvRecord);
+                records = new List<CsvRecord>();
+                while (!streamReader.EndOfStream)
+                {
+                    var strRecord = streamReader.ReadLine();
+                    var csvRecord = new CsvRecord(strRecord);
+                    records.Add(csvRecord);
+                }
             }
         }
 
@@ -85,31 +85,6 @@ namespace Csv_Enumerable
         public void Reset()
         {
             position = -1;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposed)
-                return;
-
-            if (disposing)
-            {
-                records = null;
-            }
-            streamReader?.Close();
-            streamReader?.Dispose();
-            disposed = true;
-        }
-
-        ~CsvEnumerable()
-        {
-            Dispose(false);
         }
     }
 }
